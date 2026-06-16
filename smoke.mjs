@@ -7,17 +7,22 @@ const errors = [];
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 page.on('pageerror', e => errors.push(e.message));
 
-// Simulate a user who had the old poisoned settings (excludeAI:true)
+// ── Simulate the exact broken state the real user had ──────────────────────
+// papirici_seeded = '1'  → old flag that prevented re-seeding
+// papirici_v1 = empty   → missions never actually got seeded
+// papirici_settings     → excludeAI:true (old poisoned key)
 await page.goto('http://localhost:7342/', { waitUntil: 'load', timeout: 30000 });
 await page.evaluate(() => {
-  localStorage.setItem('papirici_settings', JSON.stringify({ names:{pink:'Ana',blue:'Marko'}, excludeAI: true }));
+  localStorage.clear();
+  localStorage.setItem('papirici_seeded', '1');
+  localStorage.setItem('papirici_settings', JSON.stringify({ names:{ pink:'Ana', blue:'Marko' }, excludeAI: true }));
+  // papirici_v1 intentionally NOT set
 });
-// Give Three.js + GSAP CDN time to finish loading; reload with poisoned old settings in place
 await page.reload({ waitUntil: 'load', timeout: 30000 });
 await page.waitForTimeout(5000);
 await page.screenshot({ path: 'ss_01_player_select.png' });
 
-// Speed up GSAP so animations finish instantly in headless
+// Speed up GSAP
 await page.evaluate(() => { if (window.gsap) gsap.globalTimeline.timeScale(60); });
 
 await page.click('.player-btn.pink');
@@ -27,7 +32,11 @@ const counts = {
   white: await page.textContent('#num-white'),
   pink:  await page.textContent('#num-pink'),
 };
-console.log('Counts:', counts);
+console.log('Counts (poisoned state):', counts);
+if (counts.blue === '0' && counts.white === '0' && counts.pink === '0') {
+  console.error('FAIL: all counts are 0 — seeding did not recover');
+  process.exit(1);
+}
 await page.screenshot({ path: 'ss_02_main.png' });
 
 // Draw

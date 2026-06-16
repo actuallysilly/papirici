@@ -1,5 +1,4 @@
 const KEY = 'papirici_v1';
-const SEEDED_KEY = 'papirici_seeded';
 
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
@@ -10,18 +9,14 @@ function save(missions) {
   localStorage.setItem(KEY, JSON.stringify(missions));
 }
 
+// No seeded-flag — runs every boot, idempotent: only adds presets not already present.
 export function seedDefaults(list) {
-  if (localStorage.getItem(SEEDED_KEY)) return;
-  const existing = load();
-  const seeded = list.map(m => ({
-    id: Math.random(),
-    text: m.text,
-    color: m.color,
-    aiGenerated: true,
-    drawnAt: null,
-  }));
-  save([...existing, ...seeded]);
-  localStorage.setItem(SEEDED_KEY, '1');
+  const missions = load();
+  const existingTexts = new Set(missions.map(m => m.text));
+  const toAdd = list
+    .filter(m => !existingTexts.has(m.text))
+    .map(m => ({ id: Math.random(), text: m.text, color: m.color, aiGenerated: true, drawnAt: null }));
+  if (toAdd.length) save([...missions, ...toAdd]);
 }
 
 export function addMission(text, color) {
