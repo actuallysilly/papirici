@@ -18,7 +18,9 @@ let isAnimating = false;
 // Rotation state
 let isDragging = false;
 let prevMouseX = 0;
+let prevMouseY = 0;
 let rotVelY    = 0.003;
+let rotVelX    = 0;
 
 export function initScene(canvas) {
   clock = new THREE.Clock();
@@ -63,27 +65,37 @@ export function initScene(canvas) {
 
   document.addEventListener('mousedown', e => {
     if (isUI(e)) return;
-    isDragging = true; prevMouseX = e.clientX; rotVelY = 0;
+    isDragging = true;
+    prevMouseX = e.clientX; prevMouseY = e.clientY;
+    rotVelY = 0; rotVelX = 0;
   });
   document.addEventListener('mousemove', e => {
     if (!isDragging) return;
-    const d = e.clientX - prevMouseX;
-    prevMouseX = e.clientX;
-    rotVelY = d * 0.009;
+    const dx = e.clientX - prevMouseX;
+    const dy = e.clientY - prevMouseY;
+    prevMouseX = e.clientX; prevMouseY = e.clientY;
+    rotVelY = dx * 0.009;
+    rotVelX = dy * 0.009;
     jarGroup.rotation.y += rotVelY;
+    jarGroup.rotation.x += rotVelX;
   });
   document.addEventListener('mouseup', () => { isDragging = false; });
 
   document.addEventListener('touchstart', e => {
     if (isUI(e)) return;
-    isDragging = true; prevMouseX = e.touches[0].clientX; rotVelY = 0;
+    isDragging = true;
+    prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY;
+    rotVelY = 0; rotVelX = 0;
   }, { passive: true });
   document.addEventListener('touchmove', e => {
     if (!isDragging) return;
-    const d = e.touches[0].clientX - prevMouseX;
-    prevMouseX = e.touches[0].clientX;
-    rotVelY = d * 0.009;
+    const dx = e.touches[0].clientX - prevMouseX;
+    const dy = e.touches[0].clientY - prevMouseY;
+    prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY;
+    rotVelY = dx * 0.009;
+    rotVelX = dy * 0.009;
     jarGroup.rotation.y += rotVelY;
+    jarGroup.rotation.x += rotVelX;
   }, { passive: true });
   document.addEventListener('touchend', () => { isDragging = false; });
 
@@ -291,10 +303,13 @@ function loop() {
 
   if (!isAnimating) {
     if (!isDragging) {
-      rotVelY += (0.003 - rotVelY) * 0.015;
+      rotVelY += (0.003 - rotVelY) * 0.015; // ease Y toward gentle idle spin
+      rotVelX += (0     - rotVelX) * 0.04;  // ease X inertia to a stop
       jarGroup.rotation.y += rotVelY;
+      jarGroup.rotation.x += rotVelX;
     } else {
       rotVelY *= 0.85;
+      rotVelX *= 0.85;
     }
     // Gentle float
     jarGroup.position.y = 0.2 + Math.sin(t * 0.65) * 0.07;
