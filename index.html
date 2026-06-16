@@ -134,6 +134,15 @@
         </button>
       </div>
 
+      <div class="setting-divider"></div>
+
+      <div class="setting-section-label">Data</div>
+      <div class="setting-row data-row">
+        <button class="btn-data" onclick="app.exportData()">⬇ Export JSON</button>
+        <button class="btn-data" onclick="app.importFile()">⬆ Import JSON</button>
+      </div>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+
       <div class="modal-actions">
         <button class="btn-primary" onclick="app.saveSettings()">Save</button>
         <button class="btn-ghost" onclick="app.closeSettings()">Cancel</button>

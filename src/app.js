@@ -18,6 +18,29 @@ document.getElementById('mission-text').addEventListener('input', e => {
   document.getElementById('char-count').textContent = e.target.value.length;
 });
 
+// Import file reader
+document.getElementById('import-file').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const data = JSON.parse(evt.target.result);
+      if (data.v !== 1 || !Array.isArray(data.missions)) throw new Error();
+      localStorage.setItem('papirici_v1', JSON.stringify(data.missions));
+      if (data.settings) saveSettings(data.settings);
+      refreshNames();
+      updatePlayerBadge();
+      updateCounts();
+      closeModal('modal-settings');
+    } catch {
+      alert('Invalid file — please use a Papirici export.');
+    }
+  };
+  reader.readAsText(file);
+});
+
 // Apply saved names on load
 refreshNames();
 
@@ -99,6 +122,28 @@ window.app = {
     refreshNames();
     updatePlayerBadge();
     updateCounts();
+  },
+
+  // ── Data persistence ────────────────────────────────────────────────────────
+  exportData() {
+    const data = {
+      v: 1,
+      exportedAt: new Date().toISOString(),
+      missions: JSON.parse(localStorage.getItem('papirici_v1') || '[]'),
+      settings: getSettings(),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {
+      href: url,
+      download: `papirici-${new Date().toISOString().slice(0, 10)}.json`,
+    });
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  importFile() {
+    document.getElementById('import-file').click();
   },
 };
 
