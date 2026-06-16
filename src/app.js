@@ -1,19 +1,27 @@
 import { initScene, animateDraw, closeLid } from './scene.js';
-import { addMission, drawMission, getCounts } from './store.js';
+import { addMission, drawMission, getCounts, seedDefaults } from './store.js';
+import { getSettings, saveSettings, getNames, getExcludeAI } from './settings.js';
+import { defaultMissions } from './defaults.js';
 
-// ── State ──────────────────────────────────────────────────────
+// ── Boot ──────────────────────────────────────────────────────────────────────
+seedDefaults(defaultMissions);
+initScene(document.getElementById('canvas'));
+
+// ── State ─────────────────────────────────────────────────────────────────────
 let currentPlayer  = null;
 let selectedColor  = 'white';
 let typeTimer      = null;
+let pendingAI      = false; // temp toggle state inside settings modal
 
-// ── Boot ───────────────────────────────────────────────────────
-initScene(document.getElementById('canvas'));
-
+// Char counter
 document.getElementById('mission-text').addEventListener('input', e => {
   document.getElementById('char-count').textContent = e.target.value.length;
 });
 
-// ── Public API (called from HTML onclick) ──────────────────────
+// Apply saved names on load
+refreshNames();
+
+// ── Public API (called from HTML onclick) ─────────────────────────────────────
 window.app = {
 
   selectPlayer(player) {
@@ -31,7 +39,7 @@ window.app = {
 
   draw() {
     if (!currentPlayer) return;
-    const mission = drawMission(currentPlayer);
+    const mission = drawMission(currentPlayer, getExcludeAI());
     if (!mission) { openModal('modal-empty'); return; }
     updateCounts();
     animateDraw(mission.color, () => showReveal(mission));
@@ -44,7 +52,6 @@ window.app = {
     openModal('modal-add');
     setTimeout(() => document.getElementById('mission-text').focus(), 340);
   },
-
   closeAddModal() { closeModal('modal-add'); },
 
   selectColor(color) { setColor(color); },
@@ -65,9 +72,36 @@ window.app = {
   },
 
   closeEmpty() { closeModal('modal-empty'); },
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+  openSettings() {
+    const s = getSettings();
+    document.getElementById('name-pink').value = s.names.pink || '';
+    document.getElementById('name-blue').value = s.names.blue || '';
+    pendingAI = s.excludeAI;
+    applyToggleUI(pendingAI);
+    openModal('modal-settings');
+  },
+
+  closeSettings() { closeModal('modal-settings'); },
+
+  toggleAI() {
+    pendingAI = !pendingAI;
+    applyToggleUI(pendingAI);
+  },
+
+  saveSettings() {
+    const namePink = document.getElementById('name-pink').value.trim() || 'Her';
+    const nameBlue = document.getElementById('name-blue').value.trim() || 'Him';
+    saveSettings({ names: { pink: namePink, blue: nameBlue }, excludeAI: pendingAI });
+    closeModal('modal-settings');
+    refreshNames();
+    updatePlayerBadge();
+    updateCounts();
+  },
 };
 
-// ── UI Helpers ─────────────────────────────────────────────────
+// ── UI Helpers ────────────────────────────────────────────────────────────────
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(`screen-${id}`).classList.add('active');
@@ -75,25 +109,30 @@ function showScreen(id) {
 
 function openModal(id) {
   document.getElementById(id).classList.add('open');
+  document.getElementById('ui').classList.add('modal-active');
 }
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
+  if (!document.querySelector('.modal.open')) {
+    document.getElementById('ui').classList.remove('modal-active');
+  }
 }
 
 function updatePlayerBadge() {
   const el = document.getElementById('player-indicator');
+  const names = getNames();
   if (currentPlayer === 'pink') {
     el.className = 'pink';
-    el.textContent = '🌸 Her';
+    el.textContent = '🌸 ' + names.pink;
   } else {
     el.className = 'blue';
-    el.textContent = '💙 Him';
+    el.textContent = '💙 ' + names.blue;
   }
 }
 
 function updateCounts() {
-  const { blue, pink, white } = getCounts();
+  const { blue, pink, white } = getCounts(getExcludeAI());
   document.getElementById('num-blue').textContent  = blue;
   document.getElementById('num-pink').textContent  = pink;
   document.getElementById('num-white').textContent = white;
@@ -109,18 +148,36 @@ function setColor(color) {
   });
 }
 
+function refreshNames() {
+  const names = getNames();
+  document.getElementById('label-pink').textContent = names.pink;
+  document.getElementById('label-blue').textContent = names.blue;
+  document.getElementById('chip-pink').textContent  = names.pink;
+  document.getElementById('chip-blue').textContent  = names.blue;
+}
+
+function applyToggleUI(on) {
+  document.getElementById('toggle-ai').classList.toggle('on', on);
+}
+
+let typeTimer2 = null;
 function showReveal(mission) {
-  const sheet = document.getElementById('paper-sheet');
+  const sheet   = document.getElementById('paper-sheet');
   sheet.className = 'paper-sheet ' + mission.color + '-paper';
 
-  const labels = { blue: '💙 His mission', pink: '💗 Her mission', white: '🤍 Shared mission' };
+  const names  = getNames();
+  const labels = {
+    blue:  '💙 ' + names.blue + "'s mission",
+    pink:  '💗 ' + names.pink + "'s mission",
+    white: '🤍 Shared mission',
+  };
   document.getElementById('reveal-label').textContent = labels[mission.color] ?? '';
 
   const textEl = document.getElementById('reveal-text');
   textEl.textContent = '';
   textEl.classList.remove('done');
 
-  // Force reflow so the unfold animation restarts
+  // Force CSS animation restart
   void sheet.offsetWidth;
 
   openModal('modal-reveal');

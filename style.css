@@ -484,3 +484,100 @@ textarea:focus {
   line-height: 1.65;
   margin-bottom: 26px;
 }
+
+/* Suppress UI interactions while a modal is open */
+#ui.modal-active { pointer-events: none !important; }
+
+/* ─── Settings icon button ─── */
+.icon-btn {
+  font-size: 1.1rem;
+  padding: 5px 8px;
+  opacity: 0.7;
+  transition: opacity 0.2s, transform 0.3s;
+}
+.icon-btn:hover { opacity: 1; transform: rotate(60deg); }
+
+/* ─── Settings Card ─── */
+.settings-card { max-width: 400px; }
+
+.setting-section-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.name-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+.setting-label {
+  font-size: 0.92rem;
+  color: var(--text);
+  flex: 1;
+}
+.setting-label small {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-weight: 300;
+}
+
+.setting-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'Lato', sans-serif;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+.setting-input:focus {
+  outline: none;
+  border-color: rgba(255,107,157,0.5);
+}
+
+.setting-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+  margin: 18px 0;
+}
+
+.toggle-row {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+/* Toggle switch */
+.toggle-btn {
+  width: 50px; height: 28px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.12);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.25s;
+}
+.toggle-btn.on { background: var(--pink); }
+.toggle-dot {
+  position: absolute;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  top: 3px; left: 3px;
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.34,1.5,0.64,1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.toggle-btn.on .toggle-dot { transform: translateX(22px); }

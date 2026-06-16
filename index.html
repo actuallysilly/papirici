@@ -34,11 +34,11 @@
         <div class="player-grid">
           <button class="player-btn pink" onclick="app.selectPlayer('pink')">
             <span class="player-icon">🌸</span>
-            <span class="player-label">Her</span>
+            <span class="player-label" id="label-pink">Her</span>
           </button>
           <button class="player-btn blue" onclick="app.selectPlayer('blue')">
             <span class="player-icon">💙</span>
-            <span class="player-label">Him</span>
+            <span class="player-label" id="label-blue">Him</span>
           </button>
         </div>
       </div>
@@ -64,6 +64,7 @@
         <div class="top-right">
           <div id="player-indicator"></div>
           <button class="btn-ghost small" onclick="app.switchPlayer()">Switch</button>
+          <button class="btn-ghost small icon-btn" onclick="app.openSettings()" title="Settings">⚙</button>
         </div>
       </div>
       <div class="actions">
@@ -93,14 +94,49 @@
       <div class="for-row">
         <span class="for-label">For:</span>
         <div class="chip-group">
-          <button class="chip blue-chip" data-color="blue" onclick="app.selectColor('blue')">💙 Him</button>
-          <button class="chip pink-chip" data-color="pink" onclick="app.selectColor('pink')">💗 Her</button>
+          <button class="chip blue-chip" data-color="blue" onclick="app.selectColor('blue')">💙 <span id="chip-blue">Him</span></button>
+          <button class="chip pink-chip" data-color="pink" onclick="app.selectColor('pink')">💗 <span id="chip-pink">Her</span></button>
           <button class="chip white-chip active" data-color="white" onclick="app.selectColor('white')">🤍 Both</button>
         </div>
       </div>
       <div class="modal-actions">
         <button class="btn-primary" onclick="app.submitMission()">Add ✓</button>
         <button class="btn-ghost" onclick="app.closeAddModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Settings Modal ── -->
+  <div id="modal-settings" class="modal">
+    <div class="modal-backdrop" onclick="app.closeSettings()"></div>
+    <div class="modal-content settings-card">
+      <h2>Settings</h2>
+
+      <div class="setting-section-label">Names</div>
+      <div class="setting-row name-row">
+        <label class="setting-label" for="name-pink">🌸 Her name</label>
+        <input id="name-pink" class="setting-input" type="text" maxlength="20" placeholder="Her">
+      </div>
+      <div class="setting-row name-row">
+        <label class="setting-label" for="name-blue">💙 His name</label>
+        <input id="name-blue" class="setting-input" type="text" maxlength="20" placeholder="Him">
+      </div>
+
+      <div class="setting-divider"></div>
+
+      <div class="setting-row toggle-row">
+        <div class="setting-label">
+          Exclude AI Missions
+          <small>Hide the pre-loaded date ideas from draws</small>
+        </div>
+        <button class="toggle-btn" id="toggle-ai" onclick="app.toggleAI()">
+          <span class="toggle-dot"></span>
+        </button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="app.saveSettings()">Save</button>
+        <button class="btn-ghost" onclick="app.closeSettings()">Cancel</button>
       </div>
     </div>
   </div>
