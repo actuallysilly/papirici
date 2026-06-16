@@ -68,6 +68,7 @@ window.app = {
     closeModal('modal-reveal');
     clearInterval(typeTimer);
     document.getElementById('reveal-text').classList.remove('done');
+    document.getElementById('paper-sheet').classList.remove('shimmer');
     closeLid();
   },
 
@@ -160,36 +161,58 @@ function applyToggleUI(on) {
   document.getElementById('toggle-ai').classList.toggle('on', on);
 }
 
-let typeTimer2 = null;
 function showReveal(mission) {
-  const sheet   = document.getElementById('paper-sheet');
-  sheet.className = 'paper-sheet ' + mission.color + '-paper';
-
-  const names  = getNames();
-  const labels = {
-    blue:  '💙 ' + names.blue + "'s mission",
-    pink:  '💗 ' + names.pink + "'s mission",
-    white: '🤍 Shared mission',
-  };
-  document.getElementById('reveal-label').textContent = labels[mission.color] ?? '';
-
+  const sheet  = document.getElementById('paper-sheet');
   const textEl = document.getElementById('reveal-text');
+
+  sheet.className = 'paper-sheet ' + mission.color + '-paper';
+  sheet.classList.remove('shimmer');
+
+  const names = getNames();
+  document.getElementById('reveal-label').textContent = {
+    blue:  '💙 ' + names.blue  + "'s mission",
+    pink:  '💗 ' + names.pink  + "'s mission",
+    white: '🤍 Shared mission',
+  }[mission.color] ?? '';
+
   textEl.textContent = '';
   textEl.classList.remove('done');
 
-  // Force CSS animation restart
-  void sheet.offsetWidth;
-
   openModal('modal-reveal');
 
+  // ── GSAP paper unfold ─────────────────────────────────────────────────────
+  gsap.killTweensOf(sheet);
+  gsap.set(sheet, {
+    transformPerspective: 700,
+    transformOrigin: '50% 0%',
+    rotateX: -115,
+    scaleY: 0.06,
+    opacity: 0,
+  });
+
+  gsap.timeline({ onComplete: startTypewriter.bind(null, mission.text) })
+    // Phase 1 – spring open from folded
+    .to(sheet, { opacity: 1, duration: 0.12, ease: 'none' })
+    .to(sheet, { rotateX: 10, scaleY: 1.04, duration: 0.40, ease: 'power3.out' }, 0)
+    // Phase 2 – overshoot bounce
+    .to(sheet, { rotateX: -5, scaleY: 0.98, duration: 0.14, ease: 'power1.in' })
+    .to(sheet, { rotateX: 2,  scaleY: 1.01, duration: 0.10, ease: 'power1.out' })
+    // Phase 3 – settle flat
+    .to(sheet, { rotateX: 0, scaleY: 1, duration: 0.10, ease: 'power2.out' })
+    // Phase 4 – shine sweep
+    .call(() => sheet.classList.add('shimmer'));
+}
+
+function startTypewriter(text) {
+  const textEl = document.getElementById('reveal-text');
   clearInterval(typeTimer);
   let i = 0;
   typeTimer = setInterval(() => {
-    if (i < mission.text.length) {
-      textEl.textContent += mission.text[i++];
+    if (i < text.length) {
+      textEl.textContent += text[i++];
     } else {
       clearInterval(typeTimer);
       textEl.classList.add('done');
     }
-  }, 38);
+  }, 36);
 }

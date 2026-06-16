@@ -7,8 +7,13 @@ const errors = [];
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 page.on('pageerror', e => errors.push(e.message));
 
+// Simulate a user who had the old poisoned settings (excludeAI:true)
 await page.goto('http://localhost:7342/', { waitUntil: 'load', timeout: 30000 });
-// Give Three.js + GSAP CDN time to finish loading
+await page.evaluate(() => {
+  localStorage.setItem('papirici_settings', JSON.stringify({ names:{pink:'Ana',blue:'Marko'}, excludeAI: true }));
+});
+// Give Three.js + GSAP CDN time to finish loading; reload with poisoned old settings in place
+await page.reload({ waitUntil: 'load', timeout: 30000 });
 await page.waitForTimeout(5000);
 await page.screenshot({ path: 'ss_01_player_select.png' });
 

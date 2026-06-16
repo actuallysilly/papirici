@@ -407,19 +407,29 @@ textarea:focus {
   /* animated when modal opens */
 }
 
-.modal.open .paper-sheet {
-  animation: unfold 0.65s cubic-bezier(0.34,1.5,0.64,1) 0.15s both;
+/* unfold is driven by GSAP in showReveal — CSS only provides the shimmer sweep */
+.paper-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    108deg,
+    transparent 35%,
+    rgba(255,255,255,0.52) 50%,
+    transparent 65%
+  );
+  transform: translateX(-160%);
+  pointer-events: none;
+  border-radius: inherit;
 }
 
-@keyframes unfold {
-  from {
-    transform: perspective(500px) rotateX(-60deg) scaleY(0.1);
-    opacity: 0;
-  }
-  to {
-    transform: perspective(500px) rotateX(0deg) scaleY(1);
-    opacity: 1;
-  }
+.paper-sheet.shimmer::before {
+  animation: paper-shimmer 0.55s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+}
+
+@keyframes paper-shimmer {
+  from { transform: translateX(-160%); }
+  to   { transform: translateX(220%);  }
 }
 
 .paper-sheet.blue-paper  { background: linear-gradient(145deg, #e8f2ff, #cce0ff); }
