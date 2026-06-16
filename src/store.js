@@ -12,17 +12,15 @@ function save(missions) {
 
 export function seedDefaults(list) {
   if (localStorage.getItem(SEEDED_KEY)) return;
-  const missions = load();
-  if (missions.length === 0) {
-    const seeded = list.map(m => ({
-      id: Math.random(),
-      text: m.text,
-      color: m.color,
-      aiGenerated: true,
-      drawnAt: null,
-    }));
-    save(seeded);
-  }
+  const existing = load();
+  const seeded = list.map(m => ({
+    id: Math.random(),
+    text: m.text,
+    color: m.color,
+    aiGenerated: true,
+    drawnAt: null,
+  }));
+  save([...existing, ...seeded]);
   localStorage.setItem(SEEDED_KEY, '1');
 }
 

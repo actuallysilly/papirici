@@ -55,29 +55,37 @@ export function initScene(canvas) {
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  // ── Mouse / Touch rotation ──────────────────────────────────────────────────
-  canvas.addEventListener('mousedown', e => { isDragging = true; prevMouseX = e.clientX; rotVelY = 0; });
-  canvas.addEventListener('mousemove', e => {
+  // ── Mouse / Touch rotation ───────────────────────────────────────────────────
+  // Listen on document — the .screen.active overlay has pointer-events:all and
+  // sits above the canvas, so canvas-level listeners never fire.
+  // Skip events that land on actual UI controls.
+  const isUI = e => !!e.target.closest('button, input, label, .modal, #title-bar');
+
+  document.addEventListener('mousedown', e => {
+    if (isUI(e)) return;
+    isDragging = true; prevMouseX = e.clientX; rotVelY = 0;
+  });
+  document.addEventListener('mousemove', e => {
     if (!isDragging) return;
     const d = e.clientX - prevMouseX;
     prevMouseX = e.clientX;
     rotVelY = d * 0.009;
     jarGroup.rotation.y += rotVelY;
   });
-  canvas.addEventListener('mouseup',    () => { isDragging = false; });
-  canvas.addEventListener('mouseleave', () => { isDragging = false; });
+  document.addEventListener('mouseup', () => { isDragging = false; });
 
-  canvas.addEventListener('touchstart', e => {
+  document.addEventListener('touchstart', e => {
+    if (isUI(e)) return;
     isDragging = true; prevMouseX = e.touches[0].clientX; rotVelY = 0;
   }, { passive: true });
-  canvas.addEventListener('touchmove', e => {
+  document.addEventListener('touchmove', e => {
     if (!isDragging) return;
     const d = e.touches[0].clientX - prevMouseX;
     prevMouseX = e.touches[0].clientX;
     rotVelY = d * 0.009;
     jarGroup.rotation.y += rotVelY;
   }, { passive: true });
-  canvas.addEventListener('touchend', () => { isDragging = false; });
+  document.addEventListener('touchend', () => { isDragging = false; });
 
   loop();
 }
