@@ -65,6 +65,7 @@ export function initScene(canvas) {
 
   document.addEventListener('mousedown', e => {
     if (isUI(e)) return;
+    e.preventDefault(); // stops browser text-selection on drag
     isDragging = true;
     prevMouseX = e.clientX; prevMouseY = e.clientY;
     rotVelY = 0; rotVelX = 0;
